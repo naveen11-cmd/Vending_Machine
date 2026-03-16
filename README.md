@@ -185,7 +185,6 @@ change = 1
 
 # Output waveform 
 
-<img width="1920" height="1200" alt="Vending machine" src="https://github.com/user-attachments/assets/83a526bf-71cd-4124-b0fe-e9b7172bc7df" />
 
 # Conclusion
 The vending machine controller was successfully designed using a Moore FSM model. The simulation verified correct product dispensing and change return behavior for different coin inputs.
