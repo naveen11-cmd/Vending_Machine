@@ -14,94 +14,178 @@ Dispenses product when ₹15 or more is inserted
 Returns change if amount exceeds ₹15
 
 # State Diagram (Concept)
-States: S0 → 0 Rs
-        S5 → 5 Rs
-        S10 → 10 Rs
-        S15 → Dispense
+States: 
+
+S0 → 0 Rs
+
+S5 → 5 Rs
+
+S10 → 10 Rs
+
+S15 → Dispense
+
+S20 → Dispense and change
 
 # Verilog Code (Moore FSM)
 ```
+
 `timescale 1ns / 1ps
 module vending_machine(
-     input clk,
-     input reset,
-     input coin5,
-     input coin10,
-     output reg product,
-     output reg change
+    input clk,
+    input reset,
+    input coin5,
+    input coin10,
+    output reg product,
+    output reg change
 );
 
 parameter S0  = 3'b000,
-           S5  = 3'b001,
-           S10 = 3'b010,
-           S15 = 3'b011,
-           S20 = 3'b100;
+          S5  = 3'b001,
+          S10 = 3'b010,
+          S15 = 3'b011, 
+          S20 = 3'b100; 
 
 reg [2:0] state, next_state;
 
 always @(posedge clk) begin
-     if(reset)
-         state <= S0;
-     else
-         state <= next_state;
+    if(reset)
+        state <= S0;
+    else
+        state <= next_state;
 end
 
 always @(*) begin
-     next_state = state;
+    next_state = state; 
 
-     case(state)
-         S0:  begin
-             if(coin5)       next_state = S5;
-             else if(coin10) next_state = S10;
-         end
+    case(state)
+        S0:  begin
+            if(coin5)       next_state = S5;
+            else if(coin10) next_state = S10;
+        end
 
-         S5:  begin
-             if(coin5)       next_state = S10;
-             else if(coin10) next_state = S15;
-         end
+        S5:  begin
+            if(coin5)       next_state = S10;
+            else if(coin10) next_state = S15;
+        end
 
-         S10: begin
-             if(coin5)       next_state = S15;
-             else if(coin10) next_state = S20;
-         end
+        S10: begin
+            if(coin5)       next_state = S15;
+            else if(coin10) next_state = S20;
+        end
 
-         S15: next_state = S0;
+        S15: next_state = S0;  
 
-         S20: next_state = S0;
+        S20: next_state = S0;
 
-         default: next_state = S0;
-     endcase
+        default: next_state = S0;
+    endcase
 end
 
 always @(posedge clk) begin
-     if(reset) begin
-         product <= 0;
-         change  <= 0;
-     end
-     else begin
-         product <= (next_state == S15 || next_state == S20);
-         change  <= (next_state == S20);
-     end
+    if(reset) begin
+        product <= 0;
+        change  <= 0;
+    end
+    else begin
+        product <= (next_state == S15 || next_state == S20);
+        change  <= (next_state == S20);
+    end
 end
 
 endmodule
+
 ```
 # Testbench
 ```
 
+`timescale 1ns / 1ps
+
+module vending_machine_tb;
+
+reg clk, reset, coin5, coin10;
+wire product, change;
+
+vending_machine uut(clk, reset, coin5, coin10, product, change);
+
+initial
+begin
+    clk = 0; 
+    reset = 1; 
+    coin5 = 0; 
+    coin10 = 0;
+
+#10;
+
+    reset = 0;
+
+#10
+
+    coin5 = 1; coin10 = 0; 
+    #10;
+    coin5 = 1; coin10 = 0; 
+    #10;
+    coin5 = 1; coin10 = 0; 
+    #10;
+    coin5 = 0; coin10 = 0; 
+    #10; 
+    coin5 = 0; coin10 = 0;  
+
+#10;
+
+    coin5 = 1; coin10 = 0; 
+    #10;
+    coin5 = 0; coin10 = 1; 
+    #10;
+    coin5 = 0; coin10 = 0; 
+    #10;
+    coin5 = 0; coin10 = 0; 
+
+ #10;
+
+    coin5 = 0; coin10 = 1; 
+    #10;
+    coin5 = 0; coin10 = 1; 
+    #10;
+    coin5 = 0; coin10 = 0; 
+    #10;
+    coin5 = 0; coin10 = 0;
+
+#10;
+    $finish;
+end
+always #5 clk = ~clk;
+endmodule
+
 ```
-Expected Waveform Behavior
-Case 1: 5 + 5 + 5
-   dispense = 1
-   change = 0
-Case 2: 10 + 5
-   dispense = 1
-   change = 0
-Case 3: 10 + 10
-   dispense = 1
-   change = 1
+# Expected Waveform Behavior
+
+Case 1: 
+
+5 + 5 + 5
+
+dispense = 1
+
+change = 0
+
+Case 2: 
+
+10 + 5
+        
+dispense = 1
+        
+change = 0
+
+Case 3: 
+        
+10 + 10
+        
+dispense = 1
+        
+change = 1
 
 # Output waveform 
+
+<img width="1920" height="1200" alt="Vending machine" src="https://github.com/user-attachments/assets/83a526bf-71cd-4124-b0fe-e9b7172bc7df" />
 
 # Conclusion
 The vending machine controller was successfully designed using a Moore FSM model. The simulation verified correct product dispensing and change return behavior for different coin inputs.
